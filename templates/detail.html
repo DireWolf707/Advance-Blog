@@ -1,6 +1,28 @@
 
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 
-
+{% for post in similar_post %}
+<a href="{{post.get_absolute_url}}">{{post.title}}</a>,
+{% endfor %}
 
 {{post.author}}-{{post.title}}
 <a href="{% url 'blog:post_share' post.pk %}">share</a>
+
+<form method="post">
+{% csrf_token %}
+{{comment_form.as_p}}
+<input type='submit'>
+</form>
+
+
+<ul>
+{% for comment in comments %}
+<li>{{comment.body}}</li>
+{% endfor %}
+</ul>

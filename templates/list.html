@@ -1,5 +1,11 @@
 <ul>
 {% for post in posts %}
 <li><a href="{{post.get_absolute_url}}">{{post.title}}</a></li>
+<p>
+Tags :
+{% for tag in post.tags.all %}
+<a href="{% url 'blog:post_list_by_tag' tag.slug %}">{{tag.name}}</a>
+{% endfor %}
+</p>
 {% endfor %}
 </ul>
