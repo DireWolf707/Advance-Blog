@@ -29,6 +29,7 @@ class Post(models.Model):
     
     class Meta:
         ordering = ('-publish',)
+        #used when object list is called
         
     def __str__(self) -> str:
         return self.title
