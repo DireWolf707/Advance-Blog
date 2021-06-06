@@ -1,4 +1,3 @@
-from django.db.models.query import QuerySet
 from django.shortcuts import render,get_object_or_404,redirect
 from .models import Post
 from taggit.models import Tag
@@ -23,6 +22,30 @@ class PostList(ListView):
     
 class PostDetail(View):
     def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        return render(self.request,'detail.html',context=context)
+    
+    def post(self, request, *args, **kwargs):
+        comment_form = CommentForm(self.request.POST)
+        if comment_form.is_valid():
+            return self.form_valid(comment_form)
+        else:
+            return self.form_invalid(comment_form)
+        
+    def form_valid(self,form):
+        post = self.get_object()
+        form.instance.post = post
+        form.save()
+        messages.success(self.request, 'comment added success !')
+        return redirect(post.get_absolute_url())
+    
+    def form_invalid(self,form):
+        context = self.get_context_data()
+        context.update({'comment_form':form})
+        messages.error(self.request, 'comment not added !')
+        return render(self.request,'detail.html',context=context)
+    
+    def get_context_data(self):
         post = self.get_object()
         comments = post.comments.filter(active=True)
         comment_form = CommentForm()
@@ -30,20 +53,8 @@ class PostDetail(View):
         post_tags_ids = post.tags.values_list('id',flat=True)
         similar_post = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
         similar_post = similar_post.annotate(same_tags=Count('tags')).order_by('-same_tags','-publish')[:4]
-        return render(request,'detail.html',{'post':post,'comments':comments,'comment_form':comment_form,'similar_post':similar_post})
-    
-    def post(self, request, *args, **kwargs):
-        post = self.get_object()
-        comment_form = CommentForm(request.POST)
-        if comment_form.is_valid():
-            comment = comment_form.save(commit=False)
-            comment.post = post
-            comment.save()
-            messages.success(self.request, 'comment added success !')
-        else:
-            messages.error(request, 'comment not added !')
-        return redirect(post.get_absolute_url())
-            
+        return {'post':post,'comments':comments,'comment_form':comment_form,'similar_post':similar_post}
+        
     def get_object(self):
         post = get_object_or_404(Post,
                                  slug = self.kwargs['slug'],
