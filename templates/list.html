@@ -1,25 +1,34 @@
-
+{% extends "base.html" %}
 {% load blog_tags %}
 
-{% get_latest_posts as latest_posts %}
-{% for post in latest_posts %}
-{{post.title}}
-{% endfor %}
-<br>
-{% get_most_commented_posts as most_commented_posts %}
-{% for post in most_commented_posts %}
-{{post.title}}
-{% endfor %}
+{% block title %}My Blog{% endblock %}
 
-total posts-{% total_posts %}
-<ul>
-{% for post in posts %}
-<li><a href="{{post.get_absolute_url}}">{{post.title}}</a></li>
-<p>
-Tags :
-{% for tag in post.tags.all %}
-<a href="{% url 'blog:post_list_by_tag' tag.slug %}">{{tag.name}}</a>
-{% endfor %}
-</p>
-{% endfor %}
-</ul>
+{% block content %}
+  <h1>My Blog</h1>
+  {% if tag %}
+    <h2>Posts tagged with "{{ tag.name }}"</h2>
+  {% endif %}
+  {% for post in posts %}
+    <h2>
+      <a href="{{ post.get_absolute_url }}">
+        {{ post.title }}
+      </a>
+    </h2>
+    <p class="tags">
+      Tags:
+      {% for tag in post.tags.all %}
+        <a href="{% url "blog:post_list_by_tag" tag.slug %}">
+          {{ tag.name }}
+        </a>
+        {% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    <p class="date">
+      Published {{ post.publish }} by {{ post.author }}
+    </p>
+    <p class='text-truncate'>
+    {{ post.body}}
+    </p>
+  {% endfor %}
+  {% include "pagination.html" with page=page_obj %}
+{% endblock %}
