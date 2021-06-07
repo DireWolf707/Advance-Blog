@@ -42,7 +42,7 @@ class PostDetail(View):
         post_tags_ids = post.tags.values_list('id',flat=True)
         similar_post = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
         similar_post = similar_post.annotate(same_tags=Count('tags')).order_by('-same_tags','-publish')[:4]
-        return {'post':post,'comments':comments,'comment_form':comment_form,'similar_post':similar_post}
+        return {'post':post,'comments':comments,'comment_form':comment_form,'similar_posts':similar_post}
         
     def get_object(self):
         post = get_object_or_404(Post,
