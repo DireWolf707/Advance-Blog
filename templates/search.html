@@ -1,0 +1,14 @@
+{% if form %}
+<form>
+{{form.as_p}}
+<input type='submit'></input>
+</form>
+{% else %}
+Results for {{query}}
+{% for result in results %}
+{{result.title}}
+<br>
+{% empty %}
+No Results
+{% endfor %}
+{% endif %}

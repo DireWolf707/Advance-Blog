@@ -1,11 +1,13 @@
+from django.contrib.postgres import search
 from django.shortcuts import render,get_object_or_404,redirect
 from .models import Post
 from taggit.models import Tag
 from django.views.generic import ListView,View,FormView
-from .forms import EmailForm,CommentForm
+from .forms import EmailForm,CommentForm,SearchForm
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.contrib.postgres.search import SearchVector,SearchQuery,SearchRank
 
 class PostList(ListView):
     template_name = 'list.html'
@@ -29,8 +31,8 @@ class PostDetail(View):
         comment_form = CommentForm(self.request.POST)
         if comment_form.is_valid():
             return self.form_valid(comment_form)
-        else:
-            return self.form_invalid(comment_form)
+        
+        return self.form_invalid(comment_form)
     
     def get_context_data(self):
         post = self.get_object()
@@ -98,3 +100,26 @@ class PostShare(FormView):
     def get_object(self):
         post = get_object_or_404(Post,id=self.kwargs['pk'])
         return post
+    
+class SearchView(View):
+    def get(self,request,*args,**kwargs):
+        if 'query' in self.request.GET:
+            form = SearchForm(self.request.GET)
+            if form.is_valid():
+                form_data=form.cleaned_data
+                return self.form_valid(form_data)
+            return self.form_invalid(form)
+        return render(self.request,'search.html',context={'form':SearchForm()})
+    
+    def form_valid(self,form):
+        query = form['query']
+        search_vector = SearchVector('title','body')
+        search_query = SearchQuery(query)
+        results = Post.published.annotate(
+            search = search_vector,
+            rank = SearchRank(search_vector,search_query)
+        ).filter(search=search_query).order_by('-rank')
+        return render(self.request,'search.html',context={'query':query,'results':results})
+    
+    def form_invalid(self,form):
+        return render(self.request,'search.html',context={'form':form})
