@@ -58,13 +58,13 @@ class PostDetail(View):
         post = self.get_object()
         form.instance.post = post
         form.save()
-        messages.success(self.request, 'comment added success !')
+        messages.success(self.request, 'comment added successfully!')
         return redirect(post.get_absolute_url())
     
     def form_invalid(self,form):
         context = self.get_context_data()
         context.update({'comment_form':form})
-        messages.error(self.request, 'comment not added !')
+        messages.warning(self.request, 'comment not added!')
         return render(self.request,'detail.html',context=context)
     
 class PostShare(FormView):
@@ -88,8 +88,12 @@ class PostShare(FormView):
         send_mail(subject,message,'admin@mail.com',(form_data['to'],))
         
         #adding succeess message
-        messages.success(self.request, 'Post Shared Successfully !')
+        messages.success(self.request, 'Post Shared Successfully!')
         return redirect('blog:post_share',self.kwargs['pk'])
+    
+    def form_invalid(self, form):
+        messages.warning(self.request, 'Post Not Shared!')
+        return super().form_invalid(form)
     
     #called only at GET request
     def get_context_data(self, **kwargs):
