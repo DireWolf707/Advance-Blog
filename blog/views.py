@@ -31,19 +31,6 @@ class PostDetail(View):
             return self.form_valid(comment_form)
         else:
             return self.form_invalid(comment_form)
-        
-    def form_valid(self,form):
-        post = self.get_object()
-        form.instance.post = post
-        form.save()
-        messages.success(self.request, 'comment added success !')
-        return redirect(post.get_absolute_url())
-    
-    def form_invalid(self,form):
-        context = self.get_context_data()
-        context.update({'comment_form':form})
-        messages.error(self.request, 'comment not added !')
-        return render(self.request,'detail.html',context=context)
     
     def get_context_data(self):
         post = self.get_object()
@@ -64,6 +51,19 @@ class PostDetail(View):
                                  publish__day = self.kwargs['day']
                                  )
         return post
+    
+    def form_valid(self,form):
+        post = self.get_object()
+        form.instance.post = post
+        form.save()
+        messages.success(self.request, 'comment added success !')
+        return redirect(post.get_absolute_url())
+    
+    def form_invalid(self,form):
+        context = self.get_context_data()
+        context.update({'comment_form':form})
+        messages.error(self.request, 'comment not added !')
+        return render(self.request,'detail.html',context=context)
     
 class PostShare(FormView):
     form_class = EmailForm
